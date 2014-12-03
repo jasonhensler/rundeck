@@ -34,6 +34,7 @@ function NodeFilters(baseRunUrl, baseSaveJobUrl, baseNodesPageUrl, data) {
     self.page=ko.observable(data.page?data.page:0);
     self.pagingMax=ko.observable(data.pagingMax?data.pagingMax:20);
     self.paging=ko.observable(data.paging != null ? (data.paging ? true : false) : false)
+    self.maxShown=ko.observable(data.maxShown)
     self.elem=ko.observable(data.elem);
     self.tableElem=ko.observable(data.tableElem?data.tableElem:'nodesTable');
     self.pagingElem=ko.observable(data.pagingElem);
@@ -121,6 +122,9 @@ function NodeFilters(baseRunUrl, baseSaveJobUrl, baseNodesPageUrl, data) {
         var oldfilter = self.filter();
         var filterName = jQuery(link).data('node-filter-name');
         var filterString = jQuery(link).data('node-filter');
+        if(filterString.indexOf("&")>=0){
+            filterString = html_unescape(filterString);
+        }
         var filterAll = jQuery(link).data('node-filter-all');
         if (filterString && !filterName && oldfilter && !filterAll && oldfilter != '.*') {
             filterString = oldfilter + ' ' + filterString;
@@ -150,11 +154,12 @@ function NodeFilters(baseRunUrl, baseSaveJobUrl, baseNodesPageUrl, data) {
         var needsBinding = true;
         var project=self.project();
         var view = self.view() ? self.view() : 'table';
-        var basedata = {view: view, declarenone: true, fullresults: true, expanddetail: true, inlinepaging: true, nodefilterLinkId: self.nodefilterLinkId};
+        var basedata = {view: view, declarenone: true, fullresults: true, expanddetail: true, inlinepaging: false, nodefilterLinkId: self.nodefilterLinkId};
         var clearContent=true;
         if(self.paging()){
             basedata.page = page;
             basedata.max = self.pagingMax();
+            basedata.inlinepaging=true;
             if (page != 0) {
                 clearContent=false;
                 var tbody = document.createElement('tbody');
@@ -164,12 +169,15 @@ function NodeFilters(baseRunUrl, baseSaveJobUrl, baseNodesPageUrl, data) {
                 basedata.view= 'tableContent';
             }
         }
+        if(self.maxShown()){
+            basedata.maxShown=self.maxShown();
+        }
         if(clearContent){
             var div = document.createElement('div');
             jQuery('#' + self.elem()).empty().append(div);
             loadTarget = div;
         }
-        var filterdata = self.filterName() ? {filterName: self.filterName()} : {filter: self.filter()};
+        var filterdata = self.filterName() ? {filterName: self.filterName()} : self.filter()?{filter: self.filter()}:{};
         var i;
         if (!project) {
             return;

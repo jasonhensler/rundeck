@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var VersionIdentity=function(vers,data){
+var VersionIdentity=function(data){
     var self=this;
-    self.version= vers;
+    self.versionString= data['versionString'];
     self.versionData= {};
-    self.colorIdentity=data&&data.colorIdentity?data.colorIdentity:'minorPoint';
-    self.nameIdentity= data &&data.nameIdentity?data.nameIdentity:'majorMinor';
-    self.iconIdentity= data &&data.iconIdentity?data.iconIdentity:'minorPoint';
+    self.colorIdentity=data && data.colorIdentity ? data.colorIdentity : 'minorPoint';
+    self.nameIdentity= data && data.nameIdentity ? data.nameIdentity : 'majorMinor';
+    self.iconIdentity= data && data.iconIdentity ? data.iconIdentity : 'minorPoint';
+    self.appId=data && data['appId'] ? data['appId'] : 'Rundeck';
     self.csscolors= [
         'BlueViolet',
         'CadetBlue',
@@ -100,10 +101,12 @@ var VersionIdentity=function(vers,data){
         'Vanilla Latte',
         'Viennese Espresso'
     ];
-    function splitVersion(version){
+    function splitVersion(versionString){
+        var partsa=String(versionString).split(' ');
+        var version = partsa.length > 1 ? partsa[0] : versionString;
         var parts=String(version).split('-');
         var vparts=parts[0].split('\.');
-        var data={};
+        var data={version:version};
         if(vparts.length>0){
             data['major']=parseInt(vparts[0]);
         }else{
@@ -121,8 +124,16 @@ var VersionIdentity=function(vers,data){
             data['point'] =0;
         }
         data['minorPoint'] = (data.minor * 10) + data.point;
-        var release=parts.length>1?parseInt(parts[1]):1;
-        data.tag=parts.length>2?parts[2]:'';
+        var release=1;
+        var tag = '';
+        if(parts.length > 1 && /^\d+$/.test(parts[1]) ){
+            release=parseInt(parts[1]);
+            tag = parts.length > 2 ? parts[2] : '';
+        }else if(parts.length>1){
+            tag=parts[1];
+        }
+
+        data['tag']=tag;
         data['release']=release;
         data['pointRelease']= data.point*10 + release;
         data['minorPointRelease']= (data.minor * 100)+ data.point*10 + release;
@@ -173,18 +184,18 @@ var VersionIdentity=function(vers,data){
         }else{
             span2.append(span3)
         }
-        var span=jQuery('<span></span>').attr('title','Rundeck version '+self.version+' ('+text+')').append(span2);
+        var span=jQuery('<span></span>').attr('title',self.appId+' '+self.versionString +' ('+text+')').append(span2);
         if (data.tag && data.tag != 'GA') {
             span.append(jQuery('<span></span>').addClass('badge badge-info').text(' ' + data.tag.toLowerCase()));
         }
         jQuery(dom).append(span);
     };
-    self.versionData=splitVersion(self.version);
+    self.versionData=splitVersion(self.versionString);
 };
 (function(){
     jQuery(function(){
         jQuery('.rundeck-version-identity').each(function () {
-            new VersionIdentity(jQuery(this).data('version-string')).showVersionIdentity(this);
+            new VersionIdentity(jQuery(this).data()).showVersionIdentity(this);
         });
     });
 })();
