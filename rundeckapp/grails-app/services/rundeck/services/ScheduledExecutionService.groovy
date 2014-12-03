@@ -1876,15 +1876,6 @@ class ScheduledExecutionService implements ApplicationContextAware{
                 log.debug("params.groupPath doesn't match: ${params.groupPath}")
             }
         }
-        if (!params.jobName) {
-            //TODO: finalize format
-            if (params.adhocRemoteString) {
-                params.jobName = "Remote Script Job"
-            } else if (params.adhocLocalString) {
-                params.jobName = "Inline Script Job"
-            }
-        }
-
         def map
         if(params instanceof ScheduledExecution){
             map=new HashMap(params.properties)
@@ -1899,7 +1890,10 @@ class ScheduledExecutionService implements ApplicationContextAware{
         def scheduledExecution = result.scheduledExecution
         failed = result.failed
         //try to save workflow
-
+        if(failed){
+            scheduledExecution.discard()
+            return [success: false, scheduledExecution: scheduledExecution]
+        }
         if (!frameworkService.authorizeProjectJobAll(authContext, scheduledExecution, [AuthConstants.ACTION_CREATE], scheduledExecution.project)) {
             scheduledExecution.discard()
             return [success: false, error: "Unauthorized: Create Job ${scheduledExecution.generateFullName()}", unauthorized: true, scheduledExecution: scheduledExecution]

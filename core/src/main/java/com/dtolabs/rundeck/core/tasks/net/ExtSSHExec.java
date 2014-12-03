@@ -25,6 +25,7 @@
 
 package com.dtolabs.rundeck.core.tasks.net;
 
+import com.dtolabs.rundeck.core.utils.SSHAgentProcess;
 import com.dtolabs.rundeck.plugins.PluginLogger;
 import com.jcraft.jsch.*;
 import org.apache.tools.ant.BuildException;
@@ -73,6 +74,10 @@ public class ExtSSHExec extends SSHBase implements SSHTaskBuilder.SSHExecInterfa
 
     private Resource commandResource = null;
     private List<Environment.Variable> envVars=null;
+    
+    private Boolean enableSSHAgent=false;
+    private Integer ttlSSHAgent=0;
+    private SSHAgentProcess sshAgentProcess=null;
 
     private static final String TIMEOUT_MESSAGE =
         "Timeout period exceeded, connection dropped.";
@@ -140,7 +145,7 @@ public class ExtSSHExec extends SSHBase implements SSHTaskBuilder.SSHExecInterfa
      * @param inputProperty  The property which contains the input data for the remote command.
      */
     public void setInputProperty(String inputProperty) {
-    	this.inputProperty = inputProperty;
+        this.inputProperty = inputProperty;
     }
 
     /**
@@ -232,6 +237,14 @@ public class ExtSSHExec extends SSHBase implements SSHTaskBuilder.SSHExecInterfa
 
     public InputStream getSshKeyData() {
         return sshKeyData;
+    }
+
+    public SSHAgentProcess getSSHAgentProcess() {
+        return this.sshAgentProcess;
+    }
+
+    public void setSSHAgentProcess(SSHAgentProcess sshAgentProcess) {
+        this.sshAgentProcess = sshAgentProcess;
     }
 
     /**
@@ -328,6 +341,13 @@ public class ExtSSHExec extends SSHBase implements SSHTaskBuilder.SSHExecInterfa
                 log("Caught exception: " + e.getMessage(), Project.MSG_ERR);
             }
         } finally {
+            try {
+                if (null != this.sshAgentProcess) {
+                    this.sshAgentProcess.stopAgent();
+                }
+            } catch (IOException e) {
+                log( "Caught exception: " + e.getMessage(), Project.MSG_ERR);
+            }
             if (outputProperty != null) {
                 getProject().setNewProperty(outputProperty, output.toString());
             }
@@ -378,7 +398,7 @@ public class ExtSSHExec extends SSHBase implements SSHTaskBuilder.SSHExecInterfa
             String inputData = getProject().getProperty(inputProperty) ;
             if (inputData != null) {
                 istream = new ByteArrayInputStream(inputData.getBytes()) ;
-            }        	
+            }
         }
 
         if(getInputStream()!=null){
@@ -390,6 +410,10 @@ public class ExtSSHExec extends SSHBase implements SSHTaskBuilder.SSHExecInterfa
             session.setTimeout((int) maxwait);
             /* execute the command */
             channel = (ChannelExec) session.openChannel("exec");
+            if(null != this.sshAgentProcess){
+                channel.setAgentForwarding(true);
+            }
+            
             channel.setCommand(cmd);
             channel.setOutputStream(tee);
             channel.setExtOutputStream(new KeepAliveOutputStream(System.err), true);
@@ -592,5 +616,25 @@ public class ExtSSHExec extends SSHBase implements SSHTaskBuilder.SSHExecInterfa
 
     public SSHUserInfo getUserInfo(){
         return super.getUserInfo();
+    }
+
+    @Override
+    public void setEnableSSHAgent(Boolean enableSSHAgent) {
+        this.enableSSHAgent = enableSSHAgent;
+    }
+
+    @Override
+    public Boolean getEnableSSHAgent() {
+        return this.enableSSHAgent;
+    }
+
+    @Override
+    public void setTtlSSHAgent(Integer ttlSSHAgent) {
+        this.ttlSSHAgent = ttlSSHAgent;
+    }
+
+    @Override
+    public Integer getTtlSSHAgent() {
+      return this.ttlSSHAgent;
     }
 }

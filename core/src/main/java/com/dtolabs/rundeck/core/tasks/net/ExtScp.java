@@ -1,5 +1,6 @@
 package com.dtolabs.rundeck.core.tasks.net;
 
+import com.dtolabs.rundeck.core.utils.SSHAgentProcess;
 import com.dtolabs.rundeck.plugins.PluginLogger;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -17,11 +18,11 @@ import java.util.Map;
  */
 public class ExtScp extends Scp implements SSHTaskBuilder.SCPInterface {
 
-    private String knownhosts;
-    private InputStream sshKeyData;
-    private long timeout;
+    private String              knownhosts;
+    private InputStream         sshKeyData;
+    private long                timeout;
     private Map<String, String> sshConfig;
-    private PluginLogger pluginLogger;
+    private PluginLogger        pluginLogger;
 
     @Override
     public void setSshConfig(Map<String, String> config) {
@@ -77,5 +78,26 @@ public class ExtScp extends Scp implements SSHTaskBuilder.SCPInterface {
 
     public void setPluginLogger(PluginLogger pluginLogger) {
         this.pluginLogger = pluginLogger;
+    }
+
+    public SSHAgentProcess getSSHAgentProcess() {
+        return null;
+    }
+
+    public void setSSHAgentProcess(SSHAgentProcess sshAgentProcess) {
+    }
+
+    public void setEnableSSHAgent(Boolean enableSSHAgent) {
+    }
+
+    public Boolean getEnableSSHAgent() {
+        return Boolean.FALSE;
+    }
+
+    public void setTtlSSHAgent(Integer ttlSSHAgent) {
+    }
+
+    public Integer getTtlSSHAgent() {
+        return 0;
     }
 }

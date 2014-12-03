@@ -45,7 +45,11 @@ class ScheduledExecution extends ExecutionContext {
         workflow(nullable:true)
         options(nullable:true)
         jobName(blank: false, nullable: false, matches: "[^/]+", maxSize: 1024)
+<<<<<<< HEAD
         groupPath(nullable:true)
+=======
+        groupPath(nullable:true, maxSize: 2048)
+>>>>>>> 1c8da5d6371db7fee564b408b0b606b7758d4dfb
         nextExecution(nullable:true)
         nodeKeepgoing(nullable:true)
         doNodedispatch(nullable:true)
@@ -113,10 +117,17 @@ class ScheduledExecution extends ExecutionContext {
         nodeExcludeOsVersion(type: 'text')
         filter(type: 'text')
         userRoleList(type: 'text')
+<<<<<<< HEAD
 		jobName type: 'string'
         argString type: 'text'
         description type: 'text'
 		groupPath type: 'text'
+=======
+        jobName type: 'string'
+        argString type: 'text'
+        description type: 'text'
+        groupPath type: 'string'
+>>>>>>> 1c8da5d6371db7fee564b408b0b606b7758d4dfb
         options lazy: false
         timeout(type: 'text')
         retry(type: 'text')
@@ -276,18 +287,20 @@ class ScheduledExecution extends ExecutionContext {
             se.multipleExecutions=data.multipleExecutions?true:false
         }
         if(data.nodefilters){
-            se.nodeThreadcount = data.nodefilters.dispatch.threadcount ?: 1
-            if(data.nodefilters.dispatch.containsKey('keepgoing')){
-                se.nodeKeepgoing = data.nodefilters.dispatch.keepgoing
-            }
-            if(data.nodefilters.dispatch.containsKey('excludePrecedence')){
-                se.nodeExcludePrecedence = data.nodefilters.dispatch.excludePrecedence
-            }
-            if(data.nodefilters.dispatch.containsKey('rankAttribute')){
-                se.nodeRankAttribute = data.nodefilters.dispatch.rankAttribute
-            }
-            if(data.nodefilters.dispatch.containsKey('rankOrder')){
-                se.nodeRankOrderAscending = data.nodefilters.dispatch.rankOrder=='ascending'
+            if(data.nodefilters.dispatch){
+                se.nodeThreadcount = data.nodefilters.dispatch.threadcount ?: 1
+                if(data.nodefilters.dispatch.containsKey('keepgoing')){
+                    se.nodeKeepgoing = data.nodefilters.dispatch.keepgoing
+                }
+                if(data.nodefilters.dispatch.containsKey('excludePrecedence')){
+                    se.nodeExcludePrecedence = data.nodefilters.dispatch.excludePrecedence
+                }
+                if(data.nodefilters.dispatch.containsKey('rankAttribute')){
+                    se.nodeRankAttribute = data.nodefilters.dispatch.rankAttribute
+                }
+                if(data.nodefilters.dispatch.containsKey('rankOrder')){
+                    se.nodeRankOrderAscending = data.nodefilters.dispatch.rankOrder=='ascending'
+                }
             }
             if(data.nodefilters.filter){
                 se.doNodedispatch=true

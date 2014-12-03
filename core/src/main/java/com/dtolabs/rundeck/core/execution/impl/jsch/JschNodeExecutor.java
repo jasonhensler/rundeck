@@ -84,6 +84,8 @@ public class JschNodeExecutor implements NodeExecutor, Describable {
     public static final String NODE_ATTR_SSH_KEYPATH = "ssh-keypath";
     public static final String NODE_ATTR_SSH_KEY_RESOURCE = "ssh-key-storage-path";
     public static final String NODE_ATTR_SSH_PASSWORD_STORAGE_PATH= "ssh-password-storage-path";
+    public static final String NODE_ATTR_LOCAL_SSH_AGENT = "local-ssh-agent";
+    public static final String NODE_ATTR_LOCAL_TTL_SSH_AGENT = "local-ttl-ssh-agent";
 
     public static final String PROJ_PROP_PREFIX = "project.";
     public static final String FWK_PROP_PREFIX = "framework.";
@@ -656,6 +658,26 @@ public class JschNodeExecutor implements NodeExecutor, Describable {
                 return DataContextUtils.replaceDataReferences(user, context.getDataContext());
             }
             return user;
+        }
+
+        public Boolean getLocalSSHAgent() {
+            return resolveBooleanProperty(
+                    NODE_ATTR_LOCAL_SSH_AGENT,
+                    false,
+                    node,
+                    frameworkProject,
+                    framework
+            );
+        }
+
+        public Integer getTtlSSHAgent() {
+            return resolveIntProperty(
+                    NODE_ATTR_LOCAL_TTL_SSH_AGENT,
+                    0,
+                    node,
+                    frameworkProject,
+                    framework
+            );
         }
 
         public static Map<String, String> sshConfigFromFramework(Framework framework) {
