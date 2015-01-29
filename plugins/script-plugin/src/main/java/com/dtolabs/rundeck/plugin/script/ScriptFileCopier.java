@@ -65,15 +65,16 @@ import java.util.Map;
  * <li><pre>${file-copy.dir}</pre>: This is the value of the script-copy-dir attribute</li>
  * <li><pre>${file-copy.filename}</pre>: This is the name of the file without any path</li>
  * <li><pre>${file-copy.destination}</pre>: This is the value of the expected destination filepath for the file</li>
- * </ul> <p> So for example, if you wanted to change the way the script is invoked, you could specify the script-copy
+ * </ul>
+ * So for example, if you wanted to change the way the script is invoked, you could specify the script-copy
  * like:
  * <pre>
  *         &lt;node name="mynode" ...
  *         remotecopy="/bin/remotecopy"
- *         script-copy="${node.remotecopy} ${script-copy.file} ${file-copy.destination} -- ${node.username}@${node.name}"/>
+ *         script-copy="${node.remotecopy} ${script-copy.file} ${file-copy.destination} -- ${node.username}@${node.name}"/&gt;
  * </pre>
  * This would execute /bin/remotecopy and pass the path of the file to copy followed by -- and the node info
- * "username@hostname". </p>
+ * "username@hostname".
  *
  * @author Greg Schueler <a href="mailto:greg@dtosolutions.com">greg@dtosolutions.com</a>
  */
@@ -272,9 +273,15 @@ public class ScriptFileCopier implements DestinationFileCopier, Describable {
         final HashMap<String, String> scptexec = new HashMap<String, String>(){{
             //set filename of source file
             put("filename", srcFile.getName());
+            put("destfilename", srcFile.getName());
             put("file", srcFile.getAbsolutePath());
             //add file, dir, destination to the file-copy data
         }};
+	
+	if(null != remotePath && !remotePath.endsWith("/")) {
+	    scptexec.put("destfilename", new File(remotePath).getName());
+	}
+
         if (null != workingdir) {
             //set up the data context to include the working dir
             scptexec.put("dir", workingdir.getAbsolutePath());

@@ -77,9 +77,9 @@ public class SSHTaskBuilder {
 
     /**
      * Open Jsch session, applies private key configuration, timeout and custom ssh configuration
-     * @param base
-     * @return
-     * @throws JSchException
+     * @param base base
+     * @return session
+     * @throws JSchException on jsch error
      */
     public static Session openSession(SSHBaseInterface base) throws JSchException {
         JSch jsch = new JSch();
@@ -112,16 +112,18 @@ public class SSHTaskBuilder {
             }
         }
         
-        if (null != base.getUserInfo().getKeyfile()) {
-            jsch.addIdentity(base.getUserInfo().getKeyfile());
-        }
-
         if (null != base.getSshKeyData()) {
+            base.getPluginLogger().log(Project.MSG_DEBUG, "Using stored private key data.");
+            //XXX: reset password to null, which was non-null to bypass Ant's behavior
+            base.setPassword(null);
             try {
                 jsch.addIdentity("sshkey", SSHTaskBuilder.streamBytes(base.getSshKeyData()), null, null);
             } catch (IOException e) {
                 throw new JSchException("Failed to ready private ssh key data");
             }
+        }else  if (null != base.getUserInfo().getKeyfile()) {
+            base.getPluginLogger().log(Project.MSG_DEBUG, "Using private key file: "+base.getUserInfo().getKeyfile());
+            jsch.addIdentity(base.getUserInfo().getKeyfile());
         }
 
         if (!base.getUserInfo().getTrust() && base.getKnownhosts() != null) {
@@ -436,13 +438,16 @@ public class SSHTaskBuilder {
     /**
      * Build a Task that performs SSH command
      *
-     * @param loglevel
+     * @param loglevel  level
      * @param nodeentry   target node
      * @param args        arguments
      * @param project     ant project
-     * @param dataContext
+     * @param dataContext data
+     * @param logger logger
+     * @param sshConnectionInfo connection info
      *
      * @return task
+     * @throws BuilderException on error
      */
     public static ExtSSHExec build(final INodeEntry nodeentry, final String[] args,
             final Project project,
@@ -534,6 +539,8 @@ public class SSHTaskBuilder {
                         throw new BuilderException("Failed to read SSH Private key stored at path: " +
                                 sshKeyResource,e);
                     }
+                    //XXX: bypass password & keyfile null check in Ant 1.8.3's Scp.java:370, is restored to null in {@link #openSession}.
+                    sshbase.setPassword("");
                 } else if (null != sshKeypath && !"".equals(sshKeypath)) {
                     if (!new File(sshKeypath).exists()) {
                         throw new BuilderException("SSH Keyfile does not exist: " + sshKeypath);
@@ -672,7 +679,7 @@ public class SSHTaskBuilder {
 
         public byte[] getPasswordStorageData() throws IOException;
         /**
-         * Return the private key passphrase if set, or null.
+         * @return the private key passphrase if set, or null.
          */
         public String getPrivateKeyPassphrase();
 

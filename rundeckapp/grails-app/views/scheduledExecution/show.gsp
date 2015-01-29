@@ -9,13 +9,14 @@
     <g:render template="/framework/remoteOptionValuesJS"/>
     <g:javascript library="executionOptions"/>
     <asset:javascript src="historyKO.js"/>
-    <g:javascript>
+      <script type="text/javascript">
+      var pagehistory;
         jQuery(document).ready(function(){
-            var history = new History(appLinks.reportsEventsAjax, appLinks.menuNowrunningAjax);
-            ko.applyBindings(history, document.getElementById('activity_section'));
-            setupActivityLinks('activity_section', history);
+            pagehistory = new History(appLinks.reportsEventsAjax, appLinks.menuNowrunningAjax);
+            ko.applyBindings(pagehistory, document.getElementById('activity_section'));
+            setupActivityLinks('activity_section', pagehistory);
         });
-    </g:javascript>
+    </script>
   </head>
 
   <body>

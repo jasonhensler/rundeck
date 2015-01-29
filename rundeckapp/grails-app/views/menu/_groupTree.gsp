@@ -15,13 +15,13 @@
             %{
                 newparams['groupPath']=uplevel
             }%
-            <g:link controller="menu" action="jobs" class="groupname" title="Previous level" params="${newparams}">
+            <g:link controller="menu" action="jobs" class="groupname" title="Previous level" params="${newparams+[project:params.project]}">
                 <i class="glyphicon glyphicon-arrow-up"></i>
                 Up
             </g:link>
         </g:if>
         <g:else>
-            <g:link controller="menu" action="jobs" class="groupname" title="Top level">
+            <g:link controller="menu" action="jobs" class="groupname" title="Top level" params="[project: params.project]">
                 <i class="glyphicon glyphicon-arrow-up"></i>
                 Top
             </g:link>
@@ -59,11 +59,11 @@
             outdiv= (['</div>'] * (count*2)).join('<!-- x -->');
             divcounts-=(count*2);
          }%
-        <g:enc raw="true">${outdiv}</g:enc>
+        ${raw(outdiv)}
 
     </g:elseif>
     <g:else>
-        <g:enc raw="true">${(['</div>'] * divcounts).join('<!--rend-->')}</g:enc>
+        ${raw((['</div>'] * divcounts).join('<!--rend-->'))}
         <g:set var="level" value="${[]}"/>
         <g:set var="indent" value="${0}"/>
         <g:set var="divcounts" value="${0}"/>
@@ -73,7 +73,7 @@
     </g:else>
     <g:set var="prevkey" value="${group.key}"/>
     <g:set var="groupopen" value="${(wasfiltered || jscallback || level.size()==1)}"/>
-    ${"<"}div class="expandComponentHolder ${groupopen ? 'expanded' : ''} " ${">"}
+    ${raw("<")}div class="expandComponentHolder ${groupopen ? 'expanded' : ''} " ${raw(">")}
         %{divcounts++;}%
         <div style="margin-bottom:4px;">
         <g:if test="${jscallback}">
@@ -99,7 +99,7 @@
         </div>
 
         <g:timerEnd key="prepare"/>
-        ${"<"}div class="expandComponent sub_${currkey}_group sub_group" style="${wdgt.styleVisible(if: groupopen)}"${">"}
+    ${raw("<")}div class="expandComponent sub_${currkey}_group sub_group" style="${wdgt.styleVisible(if: groupopen)}"${raw(">")}
         %{ divcounts++;}%
         <g:if test="${jobgroups[group.key]}">
             <div class="jobGroups subjobs">
@@ -109,7 +109,7 @@
 
     <g:timerEnd key="_groupTree2.gsp-loop"/>
 </g:each>
-    <g:enc raw="true">${(['</div>'] * divcounts).join('<!--rlast-->')}</g:enc>
+    ${raw((['</div>'] * divcounts).join('<!--rlast-->'))}
 
     <g:if test="${currentJobs}">
         <g:timerStart key="_groupTree2.gsp-jobslist"/>

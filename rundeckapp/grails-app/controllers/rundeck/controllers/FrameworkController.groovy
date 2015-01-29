@@ -740,7 +740,6 @@ class FrameworkController extends ControllerBase {
             def proj
             (proj, errors)=frameworkService.createFrameworkProject(project,projProps)
             if (!errors && proj) {
-                session.frameworkProjects = frameworkService.projects(authContext)
                 def result = userService.storeFilterPref(session.user, [project: proj.name])
                 return redirect(controller: 'menu', action: 'index',params: [project:proj.name])
             }
@@ -1095,7 +1094,7 @@ class FrameworkController extends ControllerBase {
             def errorMsgs = pluginConfig.errors.allErrors.collect { g.message(error: it) }
             return render([valid:false,errors: errorMsgs, error: errorMsgs.join(', ')] as JSON)
         }
-        Framework framework = frameworkService.getRundeckFramework()
+        def framework = frameworkService.getRundeckFramework()
         def error
         def prefix = params.prefix ?: ''
         def String type=params[prefix+'type']
@@ -1109,9 +1108,6 @@ class FrameworkController extends ControllerBase {
         if('true'==params.revert){
             prefix='orig.'+prefix
         }
-        Properties props
-        def report
-        def desc
         def result=[valid:false]
         if (!type) {
             result.error = "Plugin provider type must be specified"
@@ -1154,8 +1150,12 @@ class FrameworkController extends ControllerBase {
 
         render(view: 'createResourceModelConfig', model: [ prefix: prefix, values: props, description: desc, report: report, error: error, isEdit: "true"!=params.iscreate,type:type, isCreate:params.isCreate])
     }
-    def viewResourceModelConfig = {
-        Framework framework = frameworkService.getRundeckFramework()
+    def viewResourceModelConfig (PluginConfigParams pluginConfig) {
+        if (pluginConfig.hasErrors()) {
+            request.errors = pluginConfig.errors
+            return render(template: '/common/messages')
+        }
+        def framework = frameworkService.getRundeckFramework()
         def error
         def prefix = params.prefix ?: ''
         def String type = params[prefix + 'type']
@@ -1169,14 +1169,23 @@ class FrameworkController extends ControllerBase {
         if (!type) {
             error = "Plugin provider type must be specified"
         } else {
-            def validate = frameworkService.validateServiceConfig(type, prefix + 'config.', params, framework.getResourceModelSourceService())
+            def validate = frameworkService.validateServiceConfig(type, useprefix + 'config.', params, framework.getResourceModelSourceService())
             error = validate.error
             desc = validate.desc
             props = validate.props
             report = validate.report
         }
 
-        return render(template: 'viewResourceModelConfig',model:[ prefix: prefix, values: props, includeFormFields: true, description: desc, report: report, error: error, saved:true, type: type])
+        return [
+                prefix: prefix,
+                values: props,
+                includeFormFields: true,
+                description: desc,
+                report: report,
+                error: error,
+                saved:true,
+                type: type
+        ]
     }
     def projectDescFragment(){
         Framework framework = frameworkService.getRundeckFramework()
@@ -1273,7 +1282,7 @@ class FrameworkController extends ControllerBase {
         if(session.frameworkProjects){
             projects=session.frameworkProjects
         }else{
-            projects = frameworkService.projects(authContext)
+            projects = frameworkService.projects(authContext)*.name
             session.frameworkProjects=projects
         }
         [projects:projects,project:params.project] + (params.page?[selectParams:[page:params.page]]:[:])
@@ -1536,7 +1545,7 @@ class FrameworkController extends ControllerBase {
                     code: 'api.error.item.unauthorized', args: ['Read Nodes', 'Project', params.project]])
 
         }
-        if (params.format && !(params.format in ['xml','yaml']) || request.format && !(request.format in ['html','xml','yaml'])) {
+        if (params.format && !(params.format in ['all','xml','yaml']) || request.format && !(request.format in ['all','html','xml','yaml'])) {
             //expected another content type
             def reqformat = params.format ?: request.format
             if (!apiService.requireVersion(request, response,ApiRequestFilters.V3)) {

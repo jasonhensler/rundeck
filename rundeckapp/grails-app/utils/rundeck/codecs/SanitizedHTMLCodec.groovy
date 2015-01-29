@@ -23,7 +23,7 @@ import org.owasp.html.Sanitizers
 
 /**
  * Sanitize HTML using owasp sanitizer and allow basic HTML elements.
- * @author Greg Schueler <greg@simplifyops.com>
+ * @author Greg Schueler <a href="mailto:greg@simplifyops.com">greg@simplifyops.com</a>
  * @since 2014-11-19
  */
 class SanitizedHTMLCodec {
@@ -36,9 +36,10 @@ class SanitizedHTMLCodec {
                 and(new HtmlPolicyBuilder().
                             //allow 'class' attribute on these elements
                             allowElements('em', 'p', 'i', 'b', 'div', 'a', 'span', 'h1', 'h2',
-                                          'h3', 'h4').
+                                          'h3', 'h4', 'pre', 'code').
                             allowAttributes('class').onElements('p', 'i', 'b', 'div', 'a',
-                                                                'span', 'h1', 'h2', 'h3', 'h4').
+                                                                'span', 'h1', 'h2', 'h3', 'h4',
+                                                                'pre', 'code').
                             toFactory()
                 )
 

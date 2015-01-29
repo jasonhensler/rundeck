@@ -49,10 +49,11 @@
         <g:hiddenField name="${origfieldname}" value="${values && values[prop.name] ? values[prop.name] : ''}"/>
         <div class="checkbox">
             <label
-                   for="${enc(attr:fieldid)}"><g:enc>${prop.title ?: prop.name}</g:enc>
+                   for="${enc(attr:fieldid)}">
                 <g:checkBox name="${fieldname}" value="true"
                             checked="${values&&values[prop.name]?values[prop.name]=='true':prop.defaultValue=='true'}"
                             id="${fieldid}"/>
+                <g:enc>${prop.title ?: prop.name}</g:enc>
             </label>
         </div>
     </div>
@@ -117,13 +118,13 @@
         %{-- selector for accessible storage --}%
         <g:set var="storageRoot" value="${prop.renderingOptions?.(StringRenderingConstants.STORAGE_PATH_ROOT_KEY)?:'/'}"/>
         <g:set var="storageFilter" value="${prop.renderingOptions?.(StringRenderingConstants.STORAGE_FILE_META_FILTER_KEY)?:''}"/>
-        <button class="btn btn-sm btn-default obs-select-storage-path"
+        <a class="btn btn-sm btn-default obs-select-storage-path"
                 data-toggle="modal"
                 href="#storagebrowse"
                 data-storage-root="${enc(attr:storageRoot)}"
                 data-storage-filter="${enc(attr:storageFilter)}"
                 data-field="#${enc(attr:fieldid)}"
-        >Select... <i class="glyphicon glyphicon-folder-open"></i></button>
+        >Select... <i class="glyphicon glyphicon-folder-open"></i></a>
         </div>
     </g:if>
 </g:else>

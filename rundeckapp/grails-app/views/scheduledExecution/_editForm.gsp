@@ -2,50 +2,6 @@
 
 <g:render template="/common/errorFragment"/>
 
-%{-- DELETE job modal form --}%
-<auth:resourceAllowed kind="job" action="${AuthConstants.ACTION_DELETE}" project="${scheduledExecution.project?: params.project ?: request.project}">
-    <g:if test="${auth.jobAllowedTest(job: scheduledExecution, action: AuthConstants.ACTION_DELETE,project:scheduledExecution.project)}">
-        <div class="modal" id="jobdelete" tabindex="-1" role="dialog" aria-labelledby="deletejobtitle" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="deletejobtitle">Delete <g:message code="domain.ScheduledExecution.title"/></h4>
-                    </div>
-
-                    <g:form controller="scheduledExecution" useToken="true" action="delete" method="post" class="form form-horizontal">
-                    <div class="modal-body">
-                        <g:render template="/scheduledExecution/showHead"
-                                  model="${[scheduledExecution: scheduledExecution, runPage: true]}"/>
-                        <p class=" ">Really delete this <g:message
-                                code="domain.ScheduledExecution.title"/>?</p>
-                        <auth:resourceAllowed type="project" name="${scheduledExecution.project}"
-                                                context="application"
-                                              action="${[AuthConstants.ACTION_DELETE_EXECUTION,AuthConstants.ACTION_ADMIN]}"
-                                              any="true">
-
-                            <label>
-                                <input type="checkbox" name="deleteExecutions" value="true"/>
-                                Delete all executions of this Job
-                            </label>
-                        </auth:resourceAllowed>
-                    </div>
-
-                    <div class="modal-footer">
-                            <g:hiddenField name="id" value="${scheduledExecution.extid}"/>
-                            <button type="submit" class="btn btn-default btn-sm "
-                                    data-dismiss="modal">
-                                Cancel
-                            </button>
-                            <input type="submit" value="Delete" class="btn btn-danger btn-sm"/>
-                    </div>
-                    </g:form>
-                </div>
-            </div>
-        </div>
-    </g:if>
-</auth:resourceAllowed>
-
 %{--Edit job form--}%
 <g:form controller="scheduledExecution" method="post"
         action="update"
@@ -56,12 +12,27 @@
 
 <div class="panel panel-primary obs_delete_hide" id="editForm">
     <div class="panel-heading">
+        <div class="row">
+            <div class="col-sm-10">
         <span class="h4">
-            Edit <g:message code="domain.ScheduledExecution.title"/>
+            <g:message code="ScheduledExecution.page.edit.title" />
         </span>
+            </div>
+
+            <auth:resourceAllowed action="${AuthConstants.ACTION_CREATE}"
+                                  project="${params.project}" kind="${AuthConstants.TYPE_JOB}">
+
+                <div class="col-sm-2 ">
+                    <g:link controller="scheduledExecution" action="upload"
+                            params="[project: params.project ?: request.project]"
+                            class="btn btn-default btn-sm pull-right">
+                        <i class="glyphicon glyphicon-upload"></i>
+                        <g:message code="upload.definition.button.label" />
+                    </g:link>
+                </div>
+            </auth:resourceAllowed>
+        </div>
     </div>
-
-
 
         <g:render template="edit" model="[scheduledExecution:scheduledExecution, crontab:crontab, command:command,authorized:authorized]"/>
 
@@ -69,30 +40,14 @@
             <div class="row">
             <div class="buttons col-sm-10">
 
-                <g:actionSubmit id="editFormCancelButton" value="Cancel"
+                <g:actionSubmit id="editFormCancelButton" value="${g.message(code: 'cancel')}"
                                 onclick="if(typeof(jobEditCancelled)=='function'){jobEditCancelled();}"
-                                class="btn btn-default"/>
-                <g:actionSubmit value="Save" action="Update" class="btn btn-primary "/>
+                                class="btn btn-default reset_page_confirm"/>
+                <g:actionSubmit value="${g.message(code: 'button.action.Save')}" action="Update" class="btn btn-primary reset_page_confirm "/>
 
             </div>
-            <auth:resourceAllowed kind="job" action="${AuthConstants.ACTION_DELETE}" project="${scheduledExecution.project}">
-                <g:if test="${auth.jobAllowedTest(job: scheduledExecution, action: AuthConstants.ACTION_DELETE)}">
-                    <div class="  col-sm-2">
-
-                        <a data-toggle="modal"
-                           href="#jobdelete"
-                                class="btn btn-danger btn-link pull-right"
-                              title="Delete ${g.message(code: 'domain.ScheduledExecution.title')}">
-                            <b class="glyphicon glyphicon-remove-circle"></b>
-                            Delete this Job
-                        </a>
-
-                    </div>
-                </g:if>
-            </auth:resourceAllowed>
             </div>
         </div>
-
 
 </div>
 

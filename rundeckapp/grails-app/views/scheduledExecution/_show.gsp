@@ -1,7 +1,7 @@
 <%@ page import="com.dtolabs.rundeck.server.authorization.AuthConstants; rundeck.Execution" %>
 <div class="row">
     <g:render template="/scheduledExecution/showHead"
-              model="[scheduledExecution: scheduledExecution, followparams: [mode: followmode, lastlines: params.lastlines]]"/>
+              model="[scheduledExecution: scheduledExecution, followparams: [mode: followmode, lastlines: params.lastlines], jobDescriptionMode:'expanded',jobActionButtons:true]"/>
 </div>
 <g:set var="runAccess" value="${auth.jobAllowedTest(job: scheduledExecution, action: AuthConstants.ACTION_RUN)}"/>
 <div class="row">
@@ -50,7 +50,7 @@
 
 <div class="row">
     <div class="col-sm-12 ">
-        <h4 class="text-muted">Statistics</h4>
+        <h4 class="text-muted"><g:message code="statistics" /></h4>
 
         <g:render template="/scheduledExecution/renderJobStats" model="${[scheduledExecution: scheduledExecution]}"/>
     </div>

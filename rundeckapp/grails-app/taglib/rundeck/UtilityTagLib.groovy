@@ -647,9 +647,13 @@ class UtilityTagLib{
 
     def markdown={ attrs, body ->
         if(attrs.safe){
-            out<<body().toString().encodeAsHTMLContent().decodeMarkdown()
+            withCodec('raw'){
+                out << body().toString().encodeAsHTMLContent().decodeMarkdown()
+            }
         }else{
-            out<<body().toString().decodeMarkdown()
+            withCodec('raw') {
+                out << body().toString().decodeMarkdown()
+            }
         }
     }
 
@@ -658,7 +662,9 @@ class UtilityTagLib{
      * is "you", with attribute "youclass"
      */
     def username={attrs,body->
-        if(attrs.user==session.user){
+        //mail rendering uses a fake request and getSession() will throw exception, so bypass if needed
+        //attribute IS_MAIL_RENDERING_REQUEST is set in the /execution/mailNotification/status.gsp file
+        if(request.getAttribute('IS_MAIL_RENDERING_REQUEST')!=Boolean.TRUE && attrs.user==session.user){
             if(attrs.youclass){
                 out<<"<span class=\"${enc(attr:attrs.youclass)}\">"
             }
@@ -715,25 +721,27 @@ class UtilityTagLib{
         if(attrs.html){
             out << attrs.html.toString().encodeAsHTML()
         }else if(attrs.stripHtml){
-            out << attrs.stripHtml.toString().encodeAsStripHTML()
+            out << raw(attrs.stripHtml.toString().encodeAsStripHTML())
         }else if(null!=attrs.attr){
-            out << attrs.attr.toString().encodeAsHTMLAttribute()
+            out << raw(attrs.attr.toString().encodeAsHTMLAttribute())
         }else if(attrs.xml){
             out << attrs.xml.toString().encodeAsXMLContent()
         }else if(null !=attrs.js){
-            out << attrs.js.toString().encodeAsJavaScript2()
+            out << raw(attrs.js.toString().encodeAsJavaScript2())
         }else if(attrs.json!=null){
-            out << attrs.json.encodeAsJSON().replaceAll('<', '\\\\u003c') //nb: replace < to allow embedding in page
+            out << attrs.json.encodeAsJSON().toString().replaceAll('<', '\\\\u003c') //nb: replace < to allow embedding in page
         }else if(attrs.url){
             out << attrs.url.toString().encodeAsURL()
         }else if(attrs.code){
             out << g.message(code:attrs.code,encodeAs:attrs.codec?:'HTML')
         }else if(attrs.rawtext) {
             //explicitly not encoded
-            out << attrs.rawtext
+            out << raw(attrs.rawtext)
         }else if(attrs.raw=='true') {
-            //explicitly not encoded
-            out << body()
+            withCodec('raw'){
+                //explicitly not encoded
+                out << body()
+            }
         }else {
             out << body().encodeAsHTML()
         }
@@ -787,7 +795,28 @@ class UtilityTagLib{
         out << enc(json: obj)
         out << '</script>'
     }
-    def refreshFormTokensHeader={attrs,body->
+    /**
+     * Embed i18n messages available to javascript in the Messages object
+     * @attr code a i18n message code, or comma separated list
+     * @attr id element id to use (optional)
+     */
+    def jsMessages = { attrs, body ->
+        def id = attrs.id ?: 'i18nmessages'
+        def msgs = [:]
+        if (attrs.code) {
+            attrs.code.split(',').each {
+                msgs[it] = g.message(code: it, default: it)
+            }
+        }
+        embedJSON.call([id: id, data: msgs],null)
+        out << '<script>'
+        out << 'if(typeof(window.Messages)!=\'object\'){'
+        out << 'window.Messages={};'
+        out << '}'
+        out << 'jQuery.extend(window.Messages,loadJsonData(\'' + enc(js: id) + '\'));'
+        out << '</script>'
+    }
+    def refreshFormTokensHeader = { attrs, body ->
         SynchronizerTokensHolder tokensHolder = tokensHolder()
         def uri = attrs.uri ?: params[SynchronizerTokensHolder.TOKEN_URI]
         response.addHeader(FormTokenFilters.TOKEN_KEY_HEADER, tokensHolder.generateToken(uri))

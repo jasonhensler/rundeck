@@ -64,7 +64,9 @@
                             value="${option?.description}"
                             rows="3"
                             placeholder="Description"
-                            class="form-control"
+                            class="form-control ace_editor"
+                            data-ace-session-mode="markdown"
+                            data-ace-height="120px"
                             id="optdesc_${rkey}"
                 />
                 <div class="help-block">
@@ -73,6 +75,13 @@
                         <i class="glyphicon glyphicon-question-sign"></i>
                     </a>
                 </div>
+                <g:javascript>
+                    jQuery(function () {
+                        jQuery('#optedit_${rkey}').find('textarea.ace_editor').each(function () {
+                            _addAceTextarea(this);
+                        });
+                    });
+                </g:javascript>
             </div>
         </div>
         <div class="form-group ${hasErrors(bean: option, field: 'defaultValue', 'has-error')}">
@@ -106,8 +115,14 @@
 
 
                     <div class="radio">
-                        <g:radio name="inputType" value="secureExposed" checked="${option?.secureInput && option?.secureExposed}" id="sectrue_${rkey}"/>
-                        <label for="sectrue_${rkey}">
+                        <label>
+                            <g:radio
+                                    name="inputType"
+                                    value="secureExposed"
+                                    checked="${option?.secureInput && option?.secureExposed}"
+                                    id="sectrue_${rkey}"
+                            />
+
                             <g:message code="form.option.secureExposed.true.label"/> <span class="text-danger small">&dagger;</span>
                         </label>
                         <span class="text-muted">
